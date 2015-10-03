@@ -8,7 +8,7 @@ module ManageIQ::Providers
     include ManageIQ::Providers::Openstack::RefreshParserCommon::OrchestrationStacks
 
     def self.ems_inv_to_hashes(ems, options = nil)
-      self.new(ems, options).ems_inv_to_hashes
+      new(ems, options).ems_inv_to_hashes
     end
 
     def initialize(ems, options = nil)
@@ -98,7 +98,7 @@ module ManageIQ::Providers
     end
 
     def get_tenants
-      @tenants = @os_handle.accessible_tenants.select {|t| t.name != "services" }
+      @tenants = @os_handle.accessible_tenants.select { |t| t.name != "services" }
       process_collection(@tenants, :cloud_tenants) { |tenant| parse_tenant(tenant) }
     end
 
@@ -454,15 +454,15 @@ module ManageIQ::Providers
       parent_image_uid = server.image["id"]
 
       new_result = {
-        :type             => "ManageIQ::Providers::Openstack::CloudManager::Vm",
-        :uid_ems          => uid,
-        :ems_ref          => uid,
-        :name             => server.name,
-        :vendor           => "openstack",
-        :raw_power_state  => raw_power_state,
-        :connection_state => "connected",
+        :type                => "ManageIQ::Providers::Openstack::CloudManager::Vm",
+        :uid_ems             => uid,
+        :ems_ref             => uid,
+        :name                => server.name,
+        :vendor              => "openstack",
+        :raw_power_state     => raw_power_state,
+        :connection_state    => "connected",
 
-        :hardware => {
+        :hardware            => {
           :numvcpus         => flavor[:cpus],
           :cores_per_socket => 1,
           :logical_cpus     => flavor[:cpus],
@@ -491,7 +491,7 @@ module ManageIQ::Providers
       if (sz = flavor[:root_disk_size]) == 0
         sz = 1.gigabytes
       end
-      add_instance_disk(disks, sz, dev.dup, "Root disk")
+      add_instance_disk(disks, sz, dev.dup,       "Root disk")
       sz = flavor[:ephemeral_disk_size]
       add_instance_disk(disks, sz, dev.succ!.dup, "Ephemeral disk")
       sz = flavor[:swap_disk_size]

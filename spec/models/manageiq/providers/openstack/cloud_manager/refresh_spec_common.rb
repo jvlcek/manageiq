@@ -104,7 +104,7 @@ module Openstack
     def default_security_groups_count
       # There is default security group per each tenant
       count = identity_data.projects.count
-      # Neutron puts there one extra security group, that is not assosiated to any tenant
+      # Neutron puts there one extra security group, that is not associated to any tenant
       count += 1 if neutron_networking?
       count
     end
@@ -235,9 +235,9 @@ module Openstack
           end
 
         expect(flavor.ext_management_system).to eq @ems
-        expect(flavor.enabled).to                 eq true
-        expect(flavor.cpu_cores).to               eq nil
-        expect(flavor.description).to             eq nil
+        expect(flavor.enabled).to               eq true
+        expect(flavor.cpu_cores).to             eq nil
+        expect(flavor.description).to           eq nil
         expect(flavor.root_disk_size).to          eq root_disk_size_by_flavor(flavor.name)
         expect(flavor.swap_disk_size).to          eq flavor.name == "m1.ems_refresh_spec" ? 512.megabytes : 0
         expect(flavor.ephemeral_disk_size).to     eq flavor.name == "m1.ems_refresh_spec" ? 1.gigabytes : 0
