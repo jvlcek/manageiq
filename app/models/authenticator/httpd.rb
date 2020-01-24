@@ -1,5 +1,16 @@
 module Authenticator
   class Httpd < Base
+    REMOTE_HEADERS =
+      {
+        "X-REMOTE-USER"           => "username",
+        "X-REMOTE-USER-EMAIL"     => "email",
+        "X-REMOTE-USER-FIRSTNAME" => "firstname",
+        "X-REMOTE-USER-LASTNAME"  => "lastname",
+        "X-REMOTE-USER-FULLNAME"  => "fullname",
+        "X-REMOTE-USER-GROUPS"    => "groups",
+        "X-REMOTE-USER-DOMAIN"    => "domain"
+      }.freeze
+
     def self.proper_name
       'External httpd'
     end
@@ -25,9 +36,13 @@ module Authenticator
       true
     end
 
-    def _authenticate(_username, _password, request)
-      request.present? &&
-        request.headers['X-REMOTE-USER'].present?
+    def _authenticate(username, password, request)
+      if !user_data_collected?(request) && request.present? && saml_configured?
+        saml_authenticate(username, password, request)
+      end
+
+      debug_headers(request)
+      user_data_collected?(request)
     end
 
     def failure_reason(_username, request)
@@ -156,6 +171,34 @@ module Authenticator
       require_dependency "httpd_dbus_api"
 
       HttpdDBusApi.new.user_attrs(username, ATTRS_NEEDED)
+    end
+
+    def user_data_collected?(request)
+      request.present? && request.headers['X-REMOTE-USER'].present?
+    end
+
+    def saml_configured?
+      config[:mode] == "httpd" && config[:provider_type] == "saml" && config[:saml_enabled] == true
+    end
+
+    def debug_headers(request)
+      return unless $audit_log.debug?
+
+      REMOTE_HEADERS.keys.each do |rh|
+        $audit_log.debug("request.headers[#{rh}] ->#{request.headers[rh]}<-")
+      end
+    end
+
+    def saml_authenticate(username, password, request)
+      user_attrs = MiqSamlEcp.new(username, password).authenticate
+
+      REMOTE_HEADERS.each do |rh, val|
+        request.headers[rh] = user_attrs[val]
+      end
+
+      unless request.headers["X-REMOTE-USER-GROUPS"].blank?
+        request.headers["X-REMOTE-USER-GROUPS"] = request.headers["X-REMOTE-USER-GROUPS"].join(";")
+      end
     end
   end
 end
